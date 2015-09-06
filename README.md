@@ -1,4 +1,5 @@
 1. sails new oauth
+1a. set config.model.migrate to 'safe'
 2. add dotenv to bootstrap
 2a. add passportInit and passportSession http
 3. setup .env file
