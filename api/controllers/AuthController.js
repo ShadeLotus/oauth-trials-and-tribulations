@@ -24,7 +24,7 @@ passport.deserializeUser( function (serializedUser, done) {
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: 'http://localhost:1337/auth/google/callback',
+    callbackURL: 'http://localhostpc.com:1337/auth/google/callback',
     passReqToCallback: true
   }, function (req, accessToken, refreshToken, user, done) {
     sails.log('oauth handler');
