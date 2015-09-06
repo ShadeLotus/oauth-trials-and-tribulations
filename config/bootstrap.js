@@ -8,7 +8,7 @@
  * For more information on bootstrapping your app, check out:
  * http://sailsjs.org/#!/documentation/reference/sails.config/sails.config.bootstrap.html
  */
-var require('dotenv');
+var dotenv = require('dotenv');
 dotenv.load();
 
 module.exports.bootstrap = function(cb) {
