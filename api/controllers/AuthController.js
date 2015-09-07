@@ -7,6 +7,7 @@
 var passport = require('passport');
 var crypto = require('crypto');
 var GoogleStrategy = require('passport-google-oauth2');
+var util = require('util');
 
 passport.serializeUser( function (user, done) {
   sails.log('Serializing user: ' + user.email);
@@ -14,7 +15,7 @@ passport.serializeUser( function (user, done) {
 });
 
 passport.deserializeUser( function (serializedUser, done) {
-  sails.log('Deseriailizing');
+  sails.log('Deseriailizing: ' + serializedUser);
   User.findOne({email: serializedUser}, function(err, user) {
     sails.log('Deseriailized User: ' + user.email);
     done(err, user);
@@ -27,10 +28,21 @@ passport.use(new GoogleStrategy({
     callbackURL: 'http://localhostpc.com:1337/auth/google/callback',
     passReqToCallback: true
   }, function (req, accessToken, refreshToken, user, done) {
-    sails.log('oauth handler');
+    var passportToken = req.query.code;
+    sails.log('Oauth Handler');
     User.findOrCreate({email: user.emails[0].value}, function(err, user){
-      sails.log('User: ' + user.email);
-      return done(err, user);
+      if (user.hasOwnProperty('email')) {
+        sails.log('User: ' + user.email);
+      }
+
+      User.update({email: user.email}, {accessToken: passportToken}, function (err, updatedUsers) {
+        if (!err) {
+          sails.log('Token assigned: ' + passportToken);
+          sails.log('Token assigned to: ' + user.email);
+        }
+
+        done(err, user);
+      });
     });
   }));
 
@@ -47,24 +59,28 @@ module.exports = {
   googleCallback: function(req, res, next) {
     sails.log('google callback');
     return passport.authenticate('google', function(err, user, info) {
+      var email = user.email;
+
       sails.log('google callback inside');
       if (!user || err) {
-        sails.log('User: ' + user.email);
+        sails.log('User: ' + email);
         sails.log('Err: ' + err);
         return res.json(false);
       }
 
+      sails.log('Preparing to Log in user: ' + email);
       req.logIn(user, function(err) {
         if (err) {
           sails.log('Err: ' + err);
           return res.json(false);
         } else {
-          var token = crypto.randomBytes(64).toString('base64');
-          User.update({email: user.email}, {accessToken: token}, function (err, user) {
-            if (err) {
-              sails.log('Err: ' + error);
+          User.findOne({email: email}, function (err, user) {
+            if (err || !user) {
+              sails.log('Error logging in user: ' + err);
               return res.json(false);
             }
+            var token = user.accessToken;
+            sails.log('Logged In User: ' + util.inspect(user));
             sails.log('Token Granted: ' + token);
             return res.json({token: token});
           });
