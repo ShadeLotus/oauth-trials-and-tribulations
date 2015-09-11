@@ -15,6 +15,10 @@ module.exports = {
     },
     accessToken: {
       type: 'string'
+    },
+    things: {
+      collection: 'thing',
+      via: 'author'
     }
   }
 };
